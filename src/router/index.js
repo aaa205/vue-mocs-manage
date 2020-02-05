@@ -25,9 +25,9 @@ export default new Router({
                     meta: { title: '自定义图标' }
                 },
                 {
-                    path: '/table',
-                    component: () => import(/* webpackChunkName: "table" */ '../components/page/BaseTable.vue'),
-                    meta: { title: '基础表格' }
+                    path: '/records',
+                    component: () => import('../components/page/RecordTable.vue'),
+                    meta: { title: '用户意见' }
                 },
                 {
                     path: '/tabs',
@@ -74,12 +74,6 @@ export default new Router({
                     path: '/dialog',
                     component: () => import(/* webpackChunkName: "dragdialog" */ '../components/page/DragDialog.vue'),
                     meta: { title: '拖拽弹框' }
-                },
-                {
-                    // 国际化组件
-                    path: '/i18n',
-                    component: () => import(/* webpackChunkName: "i18n" */ '../components/page/I18n.vue'),
-                    meta: { title: '国际化' }
                 },
                 {
                     // 权限页面
