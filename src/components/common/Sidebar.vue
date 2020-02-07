@@ -71,6 +71,10 @@
                             {
                                 index: 'records',
                                 title: '用户意见'
+                            },
+                            {
+                                index: 'news',
+                                title: '新闻'
                             }
                         ]
                     },
@@ -92,16 +96,6 @@
                             {
                                 index: 'form',
                                 title: '基本表单',
-                            },
-                            {
-                                index: '3-2',
-                                title: '三级菜单',
-                                subs: [
-                                    {
-                                        index: 'markdown',
-                                        title: 'markdown编辑器'
-                                    }
-                                ]
                             },
                             {
                                 index: 'upload',
@@ -148,11 +142,6 @@
                                 title: '404页面'
                             }
                         ]
-                    },
-                    {
-                        icon: 'el-icon-lx-redpacket_fill',
-                        index: '/donate',
-                        title: '支持作者'
                     }
                 ]
             };
