@@ -6,3 +6,11 @@ export const fetchTypeStatistics = () => {
         method: 'get'
     });
 };
+export const postNews = (data) => {
+    return request({
+        url:'./news',
+        method: 'post',
+        data:data,
+    })
+};
+

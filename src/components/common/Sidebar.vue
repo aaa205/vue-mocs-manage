@@ -75,6 +75,11 @@
                         ]
                     },
                     {
+                        icon:'el-icon-lx-news',
+                        index: 'editor',
+                        title: '新闻编辑'
+                    },
+                    {
                         icon: 'el-icon-lx-copy',
                         index: 'tabs',
                         title: 'tab选项卡'
@@ -92,10 +97,6 @@
                                 index: '3-2',
                                 title: '三级菜单',
                                 subs: [
-                                    {
-                                        index: 'editor',
-                                        title: '富文本编辑器'
-                                    },
                                     {
                                         index: 'markdown',
                                         title: 'markdown编辑器'
