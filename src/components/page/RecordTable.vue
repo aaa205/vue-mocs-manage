@@ -9,17 +9,17 @@
         </div>
         <div class="container">
             <div class="handle-box">
-                <el-select v-model="query.type.value" placeholder="类型" class="handle-select mr10">
+                <el-select v-model="typeOption.value" placeholder="类型" class="handle-select mr10">
                     <el-option
-                        v-for="option in query.type"
+                        v-for="option in typeOption"
                         :key="option.key"
                         :value="option.value"
                         :label="option.value"
                     ></el-option>
                 </el-select>
-                <el-select v-model="query.state.value" placeholder="状态" class="handle-select mr10">
+                <el-select v-model="stateOption.value" placeholder="状态" class="handle-select mr10">
                     <el-option
-                        v-for="option in query.state"
+                        v-for="option in stateOption"
                         :key="option.key"
                         :value="option.value"
                         :label="option.value"
@@ -95,15 +95,18 @@
                 <el-form-item label="种类">
                     <el-input v-model="form.typeMsg" disabled></el-input>
                 </el-form-item>
-                <el-form-item label="状态" id="state">
-                    <el-select v-model="query.state.value" :placeholder="form.stateMsg" class="handle-select mr10">
-                    <el-option
-                        v-for="option in query.state"
-                        :key="option.key"
-                        :value="option.value"
-                        :label="option.value"
-                    ></el-option>
-                </el-select>
+                <el-form-item label="状态">
+                    <el-select
+                        v-model="stateOption.value"
+                        class="handle-select mr10"
+                    >
+                        <el-option
+                            v-for="option in stateOption"
+                            :key="option.key"
+                            :value="option.value"
+                            :label="option.value"
+                        ></el-option>
+                    </el-select>
                 </el-form-item>
             </el-form>
             <span slot="footer" class="dialog-footer">
@@ -122,17 +125,8 @@ export default {
             query: {
                 addr: null,
                 userId: null,
-                type: [
-                    { key: 0, value: '路况异常' },
-                    { key: 1, value: '设施故障' },
-                    { key: 2, value: '设施设置不合理' },
-                    { key: 3, value: '其他' }
-                ],
-                state: [
-                    { key: 0, value: '未审核' },
-                    { key: 1, value: '处理中' },
-                    { key: 2, value: '已完成' }
-                ],
+                type: [],
+                state: [],
                 pageNum: 0,
                 pageSize: 10
             },
@@ -167,7 +161,17 @@ export default {
             form: {},
             idx: -1,
             id: -1,
-            editStateTemp: -1
+            stateOption: [
+                { key: 0, value: '未审核' },
+                { key: 1, value: '处理中' },
+                { key: 2, value: '已完成' }
+            ],
+            typeOption: [
+                { key: 0, value: '路况异常' },
+                { key: 1, value: '设施故障' },
+                { key: 2, value: '设施设置不合理' },
+                { key: 3, value: '其他' }
+            ]
         };
     },
     created() {
@@ -238,23 +242,19 @@ export default {
         // 保存编辑
         saveEdit() {
             this.editVisible = false;
-            this.tableData[this.idx].state = this.form.state
-            switch (this.tableData[this.idx].state) {
-                case 0:
-                    this.tableData[this.idx].stateMsg = '未审核';
-                    
-                    break;
-                case 1:
-                    this.tableData[this.idx].stateMsg = '处理中';
-                    break;
-                case 2:
-                    this.tableData[this.idx].stateMsg = '已完成';
+            // this.tableData[this.idx].state = this.form.stateO
+            // this.tableData[this.idx].stateMsg = this.stateStrings
+            switch (this.stateOption.value) {
+                case '未审核':
+                case '处理中':
+                case '已完成':
+                    this.tableData[this.idx].stateMsg = this.stateOption.value;
                     break;
                 default:
                     this.tableData[this.idx].stateMsg = '异常';
                     break;
             }
-            alert(this.form.state)
+            // alert(this.stateOption.value);
             this.$message.success(`修改第 ${this.idx + 1} 行成功`);
             this.$set(this.tableData, this.idx, this.form);
         },
