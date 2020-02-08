@@ -30,6 +30,11 @@ export default new Router({
                     meta: { title: '用户意见' }
                 },
                 {
+                    path: '/news',
+                    component: () => import(/* webpackChunkName: "tabs" */ '../components/page/NewsTable.vue'),
+                    meta: { title: '新闻' }
+                },
+                {
                     path: '/tabs',
                     component: () => import(/* webpackChunkName: "tabs" */ '../components/page/Tabs.vue'),
                     meta: { title: 'tab选项卡' }
@@ -40,16 +45,10 @@ export default new Router({
                     meta: { title: '基本表单' }
                 },
                 {
-                    // 富文本编辑器组件
+                    // 编辑新新闻
                     path: '/editor',
                     component: () => import(/* webpackChunkName: "editor" */ '../components/page/VueEditor.vue'),
-                    meta: { title: '富文本编辑器' }
-                },
-                {
-                    // markdown组件
-                    path: '/markdown',
-                    component: () => import(/* webpackChunkName: "markdown" */ '../components/page/Markdown.vue'),
-                    meta: { title: 'markdown编辑器' }
+                    meta: { title: '新闻编辑' }
                 },
                 {
                     // 图片上传组件
@@ -90,11 +89,6 @@ export default new Router({
                     path: '/403',
                     component: () => import(/* webpackChunkName: "403" */ '../components/page/403.vue'),
                     meta: { title: '403' }
-                },
-                {
-                    path: '/donate',
-                    component: () => import(/* webpackChunkName: "donate" */ '../components/page/Donate.vue'),
-                    meta: { title: '支持作者' }
                 }
             ]
         },
