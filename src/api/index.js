@@ -1,8 +1,8 @@
 import request from '../utils/request';
 
-export const fetchTypeStatistics = () => {
+export const fetchIndex = () => {
     return request({
-        url: './records/type-statistics',
+        url: './index',
         method: 'get'
     });
 };
