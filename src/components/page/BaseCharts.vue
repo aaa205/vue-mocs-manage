@@ -3,7 +3,7 @@
         <div class="crumbs">
             <el-breadcrumb separator="/">
                 <el-breadcrumb-item>
-                    <i class="el-icon-pie-chart"></i> schart图表
+                    <i class="el-icon-pie-chart"></i> 图表
                 </el-breadcrumb-item>
             </el-breadcrumb>
         </div>
@@ -27,10 +27,6 @@
             <div class="schart-box">
                 <div class="content-title">饼状图</div>
                 <schart class="schart" canvasId="pie" :options="options3"></schart>
-            </div>
-            <div class="schart-box">
-                <div class="content-title">环形图</div>
-                <schart class="schart" canvasId="ring" :options="options4"></schart>
             </div>
         </div>
     </div>
@@ -71,10 +67,10 @@ export default {
             options2: {
                 type: 'line',
                 title: {
-                    text: '最近几个月各品类销售趋势图'
+                    text: '近期提交意见趋势'
                 },
                 bgColor: '#fbfbfb',
-                labels: ['6月', '7月', '8月', '9月', '10月'],
+                labels: ['2月8日','2月9日'],
                 datasets: [
                     {
                         label: '家电',
