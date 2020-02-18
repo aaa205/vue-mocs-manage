@@ -9,7 +9,7 @@
         </div>
         <div class="container">
             <div class="handle-box">
-                <el-select v-model="typeOption.value" placeholder="类型" class="handle-select mr10">
+                <el-select v-model="typeOption.value" clearable placeholder="类型" class="handle-select mr10">
                     <el-option
                         v-for="option in typeOption"
                         :key="option.key"
@@ -17,7 +17,7 @@
                         :label="option.value"
                     ></el-option>
                 </el-select>
-                <el-select v-model="stateOption.value" placeholder="状态" class="handle-select mr10">
+                <el-select v-model="stateOption.value" clearable placeholder="状态" class="handle-select mr10">
                     <el-option
                         v-for="option in stateOption"
                         :key="option.key"
@@ -25,11 +25,11 @@
                         :label="option.value"
                     ></el-option>
                 </el-select>
-                <el-input v-model="query.addr" placeholder="地址" class="handle-input mr10"></el-input>
+                <el-input v-model="queryData.address" placeholder="地址" class="handle-input mr10"></el-input>
                 <el-button type="primary" icon="el-icon-search" @click="handleSearch">搜索</el-button>
             </div>
             <el-table
-                :data="tableData"
+                :data="queryData"
                 border
                 class="table"
                 ref="multipleTable"
@@ -96,12 +96,9 @@
                     <el-input v-model="form.typeMsg" disabled></el-input>
                 </el-form-item>
                 <el-form-item label="状态">
-                    <el-select
-                        v-model="stateOption.value"
-                        class="handle-select mr10"
-                    >
+                    <el-select v-model="stateOptionInForm.value" class="handle-select mr10">
                         <el-option
-                            v-for="option in stateOption"
+                            v-for="option in stateOptionInForm"
                             :key="option.key"
                             :value="option.value"
                             :label="option.value"
@@ -130,6 +127,7 @@ export default {
                 pageNum: 0,
                 pageSize: 10
             },
+            queryData: [],
             tableData: [
                 {
                     recordId: 71,
@@ -164,18 +162,32 @@ export default {
             stateOption: [
                 { key: 0, value: '未审核' },
                 { key: 1, value: '处理中' },
-                { key: 2, value: '已完成' }
+                { key: 2, value: '已完成' },
+                { key: 3, value: '' }
             ],
             typeOption: [
                 { key: 0, value: '路况异常' },
                 { key: 1, value: '设施故障' },
                 { key: 2, value: '设施设置不合理' },
-                { key: 3, value: '其他' }
+                { key: 3, value: '' }
+            ],
+            stateOptionInForm: [
+                { key: 0, value: '未审核' },
+                { key: 1, value: '处理中' },
+                { key: 2, value: '已完成' },
+                { key: 3, value: '' }
+            ],
+            typeOptionInForm: [
+                { key: 0, value: '路况异常' },
+                { key: 1, value: '设施故障' },
+                { key: 2, value: '设施设置不合理' },
+                { key: 3, value: '' }
             ]
         };
     },
     created() {
         //this.getData();
+        this.queryData = this.tableData;
         this.tableData.forEach(item => {
             item.createdTime = new Date(item.createdTime).toLocaleString();
             switch (item.state) {
@@ -218,16 +230,44 @@ export default {
         },
         // 获取 easy-mock 的模拟数据
         getData() {
-            fetchData(this.query).then(res => {
-                console.log(res);
-                this.tableData = res.list;
-                this.pageTotal = res.pageTotal || 50;
-            });
+            // fetchData(this.query).then(res => {
+            //     console.log(res);
+            //     this.tableData = res.list;
+            //     this.pageTotal = res.pageTotal || 50;
+            // });
         },
         // 触发搜索按钮
         handleSearch() {
-            this.$set(this.query, 'pageIndex', 1);
-            this.getData();
+            let typeValue = this.typeOption.value;
+            let stateValue = this.stateOption.value;
+            let addrValue = this.queryData.address;
+            let queryList = [];
+            // alert(typeValue)
+            // alert(stateValue)
+            // alert(addrValue)
+            if (!typeValue && !stateValue && !addrValue) {
+                this.queryData = this.tableData;
+            } else {
+                this.tableData.forEach(data => {
+                    if (typeValue === data.typeMsg 
+                    && (!stateValue || stateValue === data.stateMsg)
+                    && (!addrValue || data.address.includes(addrValue))) {
+                        queryList.push(data);
+                    }
+                    else if ((!typeValue||typeValue === data.typeMsg)
+                    && stateValue === data.stateMsg
+                    && (!addrValue || data.address.includes(addrValue))) {
+                        queryList.push(data);
+                    }
+                    else if ((!typeValue||typeValue === data.typeMsg)
+                    && (!stateValue || stateValue === data.stateMsg)
+                    && data.address.includes(addrValue)) {
+                        queryList.push(data);
+                    }
+                });
+                // this.$set(this.query, 'pageIndex', 1);
+                this.queryData = queryList;
+            }
         },
         // 多选操作
         handleSelectionChange(val) {
@@ -244,19 +284,24 @@ export default {
             this.editVisible = false;
             // this.tableData[this.idx].state = this.form.stateO
             // this.tableData[this.idx].stateMsg = this.stateStrings
-            switch (this.stateOption.value) {
+            switch (this.stateOptionInForm.value) {
                 case '未审核':
+                    this.tableData[this.idx].state = 0
+                    break
                 case '处理中':
+                    this.tableData[this.idx].state = 1
+                    break
                 case '已完成':
-                    this.tableData[this.idx].stateMsg = this.stateOption.value;
-                    break;
+                    this.tableData[this.idx].state = 2
+                    break
                 default:
-                    this.tableData[this.idx].stateMsg = '异常';
-                    break;
+                    break
             }
-            // alert(this.stateOption.value);
+            this.tableData[this.idx].stateMsg = this.stateOptionInForm.value
+            // alert(this.tableData[this.idx].state);
+            // alert(this.tableData[this.idx].stateMsg);
             this.$message.success(`修改第 ${this.idx + 1} 行成功`);
-            this.$set(this.tableData, this.idx, this.form);
+            // this.$set(this.tableData, this.idx, this.form);
         },
         // 分页导航
         handlePageChange(val) {
