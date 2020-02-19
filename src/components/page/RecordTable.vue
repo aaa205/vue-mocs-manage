@@ -9,7 +9,12 @@
         </div>
         <div class="container">
             <div class="handle-box">
-                <el-select v-model="typeOption.value" clearable placeholder="类型" class="handle-select mr10">
+                <el-select
+                    v-model="typeOption.value"
+                    clearable
+                    placeholder="类型"
+                    class="handle-select mr10"
+                >
                     <el-option
                         v-for="option in typeOption"
                         :key="option.key"
@@ -17,7 +22,12 @@
                         :label="option.value"
                     ></el-option>
                 </el-select>
-                <el-select v-model="stateOption.value" clearable placeholder="状态" class="handle-select mr10">
+                <el-select
+                    v-model="stateOption.value"
+                    clearable
+                    placeholder="状态"
+                    class="handle-select mr10"
+                >
                     <el-option
                         v-for="option in stateOption"
                         :key="option.key"
@@ -61,13 +71,18 @@
                     </template>
                 </el-table-column>
                 <el-table-column prop="createdTime" label="创建时间" width="180" align="center"></el-table-column>
-                <el-table-column label="操作" width="80" align="center">
+                <el-table-column label="操作" width="130" align="center">
                     <template slot-scope="scope">
                         <el-button
                             type="text"
                             icon="el-icon-edit"
                             @click="handleEdit(scope.$index, scope.row)"
                         >审核</el-button>
+                        <el-button
+                            type="text"
+                            icon="el-icon-refrigerator"
+                            @click="handleProgress(scope.$index, scope.row)"
+                        >进度</el-button>
                     </template>
                 </el-table-column>
             </el-table>
@@ -111,6 +126,19 @@
                 <el-button type="primary" @click="saveEdit">确 定</el-button>
             </span>
         </el-dialog>
+
+        <el-dialog title="进度" :visible.sync="timelineVisible" width="30%">
+            <el-timeline :reverse="true">
+                <el-timeline-item
+                    v-for="(step, index) in tableData[idx].steps"
+                    :key="index"
+                    :timestamp="step.createdTime"
+                >{{step.description}}</el-timeline-item>
+            </el-timeline>
+            <span slot="footer" class="dialog-footer">
+                <el-button @click="timelineVisible = false">关 闭</el-button>
+            </span>
+        </el-dialog>
     </div>
 </template>
 
@@ -139,7 +167,14 @@ export default {
                     description: '测试2',
                     address: '广东省佛山市南海区信息大道南250号靠近教学大楼',
                     state: 0,
-                    stateMsg: '未审核'
+                    stateMsg: '未审核',
+                    steps: [
+                        {
+                            stepId: 10,
+                            description: '未审核',
+                            createdTime: 1573474776288
+                        }
+                    ]
                 },
                 {
                     recordId: 72,
@@ -149,16 +184,25 @@ export default {
                     type: 1,
                     description: '测试1',
                     address: '广东省佛山市南海区万锦路250号靠近华南师范大学南海校区',
-                    state: 1
+                    state: 1,
+                    stateMsg: '处理中',
+                    steps: [
+                        {
+                            stepId: 11,
+                            description: '处理中',
+                            createdTime: 1573474776288
+                        }
+                    ]
                 }
             ],
             multipleSelection: [],
             delList: [],
             editVisible: false,
+            timelineVisible: false,
             pageTotal: 0,
             form: {},
-            idx: -1,
-            id: -1,
+            idx: 0,
+            id: 0,
             stateOption: [
                 { key: 0, value: '未审核' },
                 { key: 1, value: '处理中' },
@@ -190,6 +234,9 @@ export default {
         this.queryData = this.tableData;
         this.tableData.forEach(item => {
             item.createdTime = new Date(item.createdTime).toLocaleString();
+            item.steps.forEach(step => {
+                step.createdTime = new Date(step.createdTime).toLocaleString();
+            });
             switch (item.state) {
                 case 0:
                     item.stateMsg = '未审核';
@@ -249,19 +296,23 @@ export default {
                 this.queryData = this.tableData;
             } else {
                 this.tableData.forEach(data => {
-                    if (typeValue === data.typeMsg 
-                    && (!stateValue || stateValue === data.stateMsg)
-                    && (!addrValue || data.address.includes(addrValue))) {
+                    if (
+                        typeValue === data.typeMsg &&
+                        (!stateValue || stateValue === data.stateMsg) &&
+                        (!addrValue || data.address.includes(addrValue))
+                    ) {
                         queryList.push(data);
-                    }
-                    else if ((!typeValue||typeValue === data.typeMsg)
-                    && stateValue === data.stateMsg
-                    && (!addrValue || data.address.includes(addrValue))) {
+                    } else if (
+                        (!typeValue || typeValue === data.typeMsg) &&
+                        stateValue === data.stateMsg &&
+                        (!addrValue || data.address.includes(addrValue))
+                    ) {
                         queryList.push(data);
-                    }
-                    else if ((!typeValue||typeValue === data.typeMsg)
-                    && (!stateValue || stateValue === data.stateMsg)
-                    && data.address.includes(addrValue)) {
+                    } else if (
+                        (!typeValue || typeValue === data.typeMsg) &&
+                        (!stateValue || stateValue === data.stateMsg) &&
+                        data.address.includes(addrValue)
+                    ) {
                         queryList.push(data);
                     }
                 });
@@ -279,25 +330,55 @@ export default {
             this.form = row;
             this.editVisible = true;
         },
+        //进度（时间轴）弹出操作
+        handleProgress(index, row) {
+            this.idx = index;
+            this.form = row;
+            this.timelineVisible = true;
+        },
         // 保存编辑
         saveEdit() {
             this.editVisible = false;
+            let tableData = this.tableData[this.idx];
             // this.tableData[this.idx].state = this.form.stateO
             // this.tableData[this.idx].stateMsg = this.stateStrings
             switch (this.stateOptionInForm.value) {
                 case '未审核':
-                    this.tableData[this.idx].state = 0
-                    break
+                    if (tableData.state != 0) {
+                        tableData.state = 0;
+                        tableData.steps.push({
+                            stepId: tableData.steps.stepId,
+                            description: '未审核',
+                            createdTime: new Date().toLocaleString()
+                        });
+                    }
+
+                    break;
                 case '处理中':
-                    this.tableData[this.idx].state = 1
-                    break
+                    if (tableData.state != 1) {
+                        tableData.state = 1;
+                        tableData.steps.push({
+                            stepId: tableData.steps.stepId,
+                            description: '处理中',
+                            createdTime: new Date().toLocaleString()
+                        });
+                    }
+                    break;
                 case '已完成':
-                    this.tableData[this.idx].state = 2
-                    break
+                    if (tableData.state != 2) {
+                        tableData.state = 2;
+                        tableData.steps.push({
+                            stepId: tableData.steps.stepId,
+                            description: '已完成',
+                            createdTime: new Date().toLocaleString()
+                        });
+                    }
+                    break;
                 default:
-                    break
+                    break;
             }
-            this.tableData[this.idx].stateMsg = this.stateOptionInForm.value
+            tableData.stateMsg = this.stateOptionInForm.value;
+            // alert(this.idx)
             // alert(this.tableData[this.idx].state);
             // alert(this.tableData[this.idx].stateMsg);
             this.$message.success(`修改第 ${this.idx + 1} 行成功`);
