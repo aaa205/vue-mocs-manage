@@ -35,11 +35,11 @@
                         :label="option.value"
                     ></el-option>
                 </el-select>
-                <el-input v-model="queryData.address" placeholder="地址" class="handle-input mr10"></el-input>
+                <el-input v-model="tableData.address" placeholder="地址" class="handle-input mr10"></el-input>
                 <el-button type="primary" icon="el-icon-search" @click="handleSearch">搜索</el-button>
             </div>
             <el-table
-                :data="queryData"
+                :data="tableData"
                 border
                 class="table"
                 ref="multipleTable"
@@ -63,7 +63,7 @@
                         </el-tag>
                     </template>-->
                 </el-table-column>
-                <el-table-column label="状态" align="center" prop="state" width="100">
+                <el-table-column label="状态" align="center" prop="stateMsg" width="100">
                     <template slot-scope="scope">
                         <el-tag
                             :type="scope.row.stateMsg==='未审核'?'info':scope.row.stateMsg==='处理中'?'warning':scope.row.stateMsg==='已完成'?'success':'danger'"
@@ -129,8 +129,13 @@
 
         <el-dialog title="进度" :visible.sync="timelineVisible" width="30%">
             <el-timeline :reverse="true">
-                <el-timeline-item
+                <!-- <el-timeline-item
                     v-for="(step, index) in tableData[idx].steps"
+                    :key="index"
+                    :timestamp="step.createdTime"
+                >{{step.description}}</el-timeline-item>-->
+                <el-timeline-item
+                    v-for="(step, index) in steps"
                     :key="index"
                     :timestamp="step.createdTime"
                 >{{step.description}}</el-timeline-item>
@@ -143,10 +148,12 @@
 </template>
 
 <script>
+import { fetchRecordList } from '../../api';
 export default {
     name: 'basetable',
     data() {
         return {
+            allData: {},
             query: {
                 addr: null,
                 userId: null,
@@ -155,7 +162,9 @@ export default {
                 pageNum: 0,
                 pageSize: 10
             },
-            queryData: [],
+
+            stateMsg: [],
+            typeMsg: [],
             tableData: [
                 {
                     recordId: 71,
@@ -163,36 +172,18 @@ export default {
                     createdTime: 1573474776288,
                     nickname: 'noname',
                     type: 0,
-                    typeMsg: '路况异常',
-                    description: '测试2',
+                    description: '测试1232',
                     address: '广东省佛山市南海区信息大道南250号靠近教学大楼',
                     state: 0,
-                    stateMsg: '未审核',
-                    steps: [
-                        {
-                            stepId: 10,
-                            description: '未审核',
-                            createdTime: 1573474776288
-                        }
-                    ]
-                },
+                    stateMsg: '',
+                    typeMsg: ''
+                }
+            ],
+            steps: [
                 {
-                    recordId: 72,
-                    userId: 11,
-                    createdTime: 1573477470068,
-                    nickname: 'noname',
-                    type: 1,
-                    description: '测试1',
-                    address: '广东省佛山市南海区万锦路250号靠近华南师范大学南海校区',
-                    state: 1,
-                    stateMsg: '处理中',
-                    steps: [
-                        {
-                            stepId: 11,
-                            description: '处理中',
-                            createdTime: 1573474776288
-                        }
-                    ]
+                    stepId: 11,
+                    description: '处理中',
+                    createdTime: 1573474776288
                 }
             ],
             multipleSelection: [],
@@ -226,99 +217,119 @@ export default {
                 { key: 1, value: '设施故障' },
                 { key: 2, value: '设施设置不合理' },
                 { key: 3, value: '' }
-            ]
+            ],
+            init: false,
+            searched: false
         };
     },
     created() {
-        //this.getData();
-        this.queryData = this.tableData;
-        this.tableData.forEach(item => {
-            item.createdTime = new Date(item.createdTime).toLocaleString();
-            item.steps.forEach(step => {
-                step.createdTime = new Date(step.createdTime).toLocaleString();
-            });
-            switch (item.state) {
-                case 0:
-                    item.stateMsg = '未审核';
-                    break;
-                case 1:
-                    item.stateMsg = '处理中';
-                    break;
-                case 2:
-                    item.stateMsg = '已完成';
-                    break;
-                default:
-                    item.stateMsg = '异常';
-                    break;
-            }
-            switch (item.type) {
-                case 0:
-                    item.typeMsg = '路况异常';
-                    break;
-                case 1:
-                    item.typeMsg = '设施故障';
-                    break;
-                case 2:
-                    item.typeMsg = '设施设置不合理';
-                    break;
-                case 3:
-                    item.typeMsg = '其他';
-                    break;
-                default:
-                    item.typeMsg = '未知类型';
-                    break;
-            }
-        });
+        this.getData();
     },
     methods: {
+        // 初始格式化数据
+        format() {
+            this.tableData.forEach((item, index) => {
+                item.createdTime = new Date(item.createdTime).toLocaleString();
+                // item.steps.forEach(step => {
+                //     step.createdTime = new Date(step.createdTime).toLocaleString();
+                // });
+                switch (item.state) {
+                    case 0:
+                        item.stateMsg = '未审核';
+                        break;
+                    case 1:
+                        item.stateMsg = '处理中';
+                        break;
+                    case 2:
+                        item.stateMsg = '已完成';
+                        break;
+                    default:
+                        item.stateMsg = '异常';
+                        break;
+                }
+                switch (item.type) {
+                    case 0:
+                        item.typeMsg = '路况异常';
+                        break;
+                    case 1:
+                        item.typeMsg = '设施故障';
+                        break;
+                    case 2:
+                        item.typeMsg = '设施设置不合理';
+                        break;
+                    case 3:
+                        item.typeMsg = '其他';
+                        break;
+                    default:
+                        this.type = '未知类型';
+                        break;
+                }
+            });
+            this.init = true;
+        },
         formatDateTime(time) {
             let date = new Date(time);
             return date.getFullYear() + '-' + date.getMonth() + '-' + date.getDate() + ' ' + date.getHours() + ':' + date.getMinutes();
         },
         // 获取 easy-mock 的模拟数据
         getData() {
-            // fetchData(this.query).then(res => {
-            //     console.log(res);
-            //     this.tableData = res.list;
-            //     this.pageTotal = res.pageTotal || 50;
-            // });
+            fetchRecordList().then(res => {
+                // console.log(res);
+                this.tableData = res;
+                // this.queryData = this.tableData;
+                // console.log(this.tableData);
+                this.pageTotal = this.tableData.length;
+                this.format();
+                // if(this.init === true) {
+                //     this.queryData();
+                // }
+            });
         },
         // 触发搜索按钮
         handleSearch() {
+            //刷新
+            if ((!this.typeOption.value && !this.stateOption.value && !this.tableData.address) || this.searched) {
+                // this.queryData = this.tableData;
+                this.getData();
+                if (!this.typeOption.value && !this.stateOption.value && !this.tableData.address) {
+                    this.searched = false;
+                }
+            } else {
+                this.queryData();
+            }
+            console.log(this.tableData.length + ' ' + this.searched);
+        },
+        // 查找功能
+        queryData() {
             let typeValue = this.typeOption.value;
             let stateValue = this.stateOption.value;
-            let addrValue = this.queryData.address;
+            let addrValue = this.tableData.address;
             let queryList = [];
-            // alert(typeValue)
-            // alert(stateValue)
-            // alert(addrValue)
-            if (!typeValue && !stateValue && !addrValue) {
-                this.queryData = this.tableData;
-            } else {
-                this.tableData.forEach(data => {
-                    if (
-                        typeValue === data.typeMsg &&
-                        (!stateValue || stateValue === data.stateMsg) &&
-                        (!addrValue || data.address.includes(addrValue))
-                    ) {
-                        queryList.push(data);
-                    } else if (
-                        (!typeValue || typeValue === data.typeMsg) &&
-                        stateValue === data.stateMsg &&
-                        (!addrValue || data.address.includes(addrValue))
-                    ) {
-                        queryList.push(data);
-                    } else if (
-                        (!typeValue || typeValue === data.typeMsg) &&
-                        (!stateValue || stateValue === data.stateMsg) &&
-                        data.address.includes(addrValue)
-                    ) {
-                        queryList.push(data);
-                    }
-                });
-                // this.$set(this.query, 'pageIndex', 1);
-                this.queryData = queryList;
-            }
+            this.tableData.forEach(data => {
+                if (
+                    typeValue === data.typeMsg &&
+                    (!stateValue || stateValue === data.stateMsg) &&
+                    (!addrValue || data.address.includes(addrValue))
+                ) {
+                    queryList.push(data);
+                } else if (
+                    (!typeValue || typeValue === data.typeMsg) &&
+                    stateValue === data.stateMsg &&
+                    (!addrValue || data.address.includes(addrValue))
+                ) {
+                    queryList.push(data);
+                } else if (
+                    (!typeValue || typeValue === data.typeMsg) &&
+                    (!stateValue || stateValue === data.stateMsg) &&
+                    data.address.includes(addrValue)
+                ) {
+                    queryList.push(data);
+                }
+                this.searched = true;
+            });
+            // this.$set(this.query, 'pageIndex', 1);
+            this.tableData = queryList;
+            this.searched = true;
         },
         // 多选操作
         handleSelectionChange(val) {
@@ -334,14 +345,15 @@ export default {
         handleProgress(index, row) {
             this.idx = index;
             this.form = row;
+            this.stateMsg[row.state];
             this.timelineVisible = true;
         },
         // 保存编辑
         saveEdit() {
             this.editVisible = false;
             let tableData = this.tableData[this.idx];
-            // this.tableData[this.idx].state = this.form.stateO
-            // this.tableData[this.idx].stateMsg = this.stateStrings
+            this.tableData[this.idx].state = this.form.stateO;
+            this.tableData[this.idx].stateMsg = this.stateStrings;
             switch (this.stateOptionInForm.value) {
                 case '未审核':
                     if (tableData.state != 0) {
@@ -378,9 +390,7 @@ export default {
                     break;
             }
             tableData.stateMsg = this.stateOptionInForm.value;
-            // alert(this.idx)
-            // alert(this.tableData[this.idx].state);
-            // alert(this.tableData[this.idx].stateMsg);
+
             this.$message.success(`修改第 ${this.idx + 1} 行成功`);
             // this.$set(this.tableData, this.idx, this.form);
         },

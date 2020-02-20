@@ -33,3 +33,9 @@ export const updateNews=(id,data)=>{
         data:data
     })
 }
+export const fetchRecordList=()=>{
+    return request({
+        url:'./records',
+        method:'get'
+    });
+};
