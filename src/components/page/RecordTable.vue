@@ -35,7 +35,7 @@
                         :label="option.value"
                     ></el-option>
                 </el-select>
-                <el-input v-model="tableData.address" placeholder="地址" class="handle-input mr10"></el-input>
+                <el-input v-model="addrQuery" clearable placeholder="地址" class="handle-input mr10"></el-input>
                 <el-button type="primary" icon="el-icon-search" @click="handleSearch">搜索</el-button>
             </div>
             <el-table
@@ -70,7 +70,7 @@
                         >{{scope.row.stateMsg}}</el-tag>
                     </template>
                 </el-table-column>
-                <el-table-column prop="createdTime" label="创建时间" width="180" align="center"></el-table-column>
+                <el-table-column prop="localtime" label="创建时间" width="180" align="center"></el-table-column>
                 <el-table-column label="操作" width="130" align="center">
                     <template slot-scope="scope">
                         <el-button
@@ -137,23 +137,34 @@
                 <el-timeline-item
                     v-for="(step, index) in steps"
                     :key="index"
-                    :timestamp="step.createdTime"
+                    :timestamp="step.timestamp"
                 >{{step.description}}</el-timeline-item>
             </el-timeline>
             <span slot="footer" class="dialog-footer">
+                <el-button @click="handleProgressUpdate">进度更新</el-button>
                 <el-button @click="timelineVisible = false">关 闭</el-button>
+            </span>
+        </el-dialog>
+        <!-- 弹出输入框 -->
+        <el-dialog :visible.sync="inputVisible" width="30%">
+            <el-form :model="progressDesc" label-width="70px">
+                <el-input v-model="progressDesc"></el-input>
+            </el-form>
+            <span slot="footer" class="dialog-footer">
+                <el-button @click="inputVisible = false">取 消</el-button>
+                <el-button type="primary" @click="addProgress">确 定</el-button>
             </span>
         </el-dialog>
     </div>
 </template>
 
 <script>
-import { fetchRecordList } from '../../api';
+import { fetchRecordList, fetchRecordSteps, updateRecordState, updateProgress } from '../../api';
 export default {
     name: 'basetable',
     data() {
         return {
-            allData: {},
+            backupData: [],
             query: {
                 addr: null,
                 userId: null,
@@ -162,7 +173,8 @@ export default {
                 pageNum: 0,
                 pageSize: 10
             },
-
+            addrQuery: '',
+            progressDesc: '',
             stateMsg: [],
             typeMsg: [],
             tableData: [
@@ -170,6 +182,7 @@ export default {
                     recordId: 71,
                     userId: 11,
                     createdTime: 1573474776288,
+                    localtime: '',
                     nickname: 'noname',
                     type: 0,
                     description: '测试1232',
@@ -181,15 +194,17 @@ export default {
             ],
             steps: [
                 {
-                    stepId: 11,
-                    description: '处理中',
-                    createdTime: 1573474776288
+                    stepId: 0,
+                    description: '',
+                    createdTime: 0,
+                    timestamp: '' //时间线的时间戳
                 }
             ],
             multipleSelection: [],
             delList: [],
             editVisible: false,
             timelineVisible: false,
+            inputVisible: false,
             pageTotal: 0,
             form: {},
             idx: 0,
@@ -217,9 +232,7 @@ export default {
                 { key: 1, value: '设施故障' },
                 { key: 2, value: '设施设置不合理' },
                 { key: 3, value: '' }
-            ],
-            init: false,
-            searched: false
+            ]
         };
     },
     created() {
@@ -229,10 +242,7 @@ export default {
         // 初始格式化数据
         format() {
             this.tableData.forEach((item, index) => {
-                item.createdTime = new Date(item.createdTime).toLocaleString();
-                // item.steps.forEach(step => {
-                //     step.createdTime = new Date(step.createdTime).toLocaleString();
-                // });
+                item.localtime = new Date(item.createdTime).toLocaleString();
                 switch (item.state) {
                     case 0:
                         item.stateMsg = '未审核';
@@ -265,7 +275,7 @@ export default {
                         break;
                 }
             });
-            this.init = true;
+            this.backupData = this.tableData;
         },
         formatDateTime(time) {
             let date = new Date(time);
@@ -274,36 +284,26 @@ export default {
         // 获取 easy-mock 的模拟数据
         getData() {
             fetchRecordList().then(res => {
-                // console.log(res);
                 this.tableData = res;
-                // this.queryData = this.tableData;
-                // console.log(this.tableData);
                 this.pageTotal = this.tableData.length;
                 this.format();
-                // if(this.init === true) {
-                //     this.queryData();
-                // }
             });
         },
         // 触发搜索按钮
         handleSearch() {
             //刷新
-            if ((!this.typeOption.value && !this.stateOption.value && !this.tableData.address) || this.searched) {
-                // this.queryData = this.tableData;
-                this.getData();
-                if (!this.typeOption.value && !this.stateOption.value && !this.tableData.address) {
-                    this.searched = false;
-                }
+            if (!this.typeOption.value && !this.stateOption.value && !this.addrQuery) {
+                this.tableData = this.backupData;
             } else {
                 this.queryData();
             }
-            console.log(this.tableData.length + ' ' + this.searched);
         },
         // 查找功能
         queryData() {
+            this.tableData = this.backupData;
             let typeValue = this.typeOption.value;
             let stateValue = this.stateOption.value;
-            let addrValue = this.tableData.address;
+            let addrValue = this.addrQuery;
             let queryList = [];
             this.tableData.forEach(data => {
                 if (
@@ -329,17 +329,23 @@ export default {
             });
             // this.$set(this.query, 'pageIndex', 1);
             this.tableData = queryList;
-            this.searched = true;
         },
         // 多选操作
         handleSelectionChange(val) {
             this.multipleSelection = val;
         },
-        // 编辑操作
+        // 编辑操作弹出
         handleEdit(index, row) {
             this.idx = index;
             this.form = row;
             this.editVisible = true;
+            fetchRecordSteps(this.form.recordId).then(res => {
+                this.steps = res;
+                this.steps.forEach(step => {
+                    this.$set(step, 'timestamp', new Date().toLocaleString());
+                });
+            });
+            console.log(this.form.recordId + '' + this.steps);
         },
         //进度（时间轴）弹出操作
         handleProgress(index, row) {
@@ -347,10 +353,18 @@ export default {
             this.form = row;
             this.stateMsg[row.state];
             this.timelineVisible = true;
+            fetchRecordSteps(this.form.recordId).then(res => {
+                this.steps = res;
+                this.steps.forEach(step => {
+                    step.timestamp = new Date(step.createdTime).toLocaleString();
+                });
+            });
         },
         // 保存编辑
         saveEdit() {
             this.editVisible = false;
+            let index = this.idx;
+            let step = this.steps;
             let tableData = this.tableData[this.idx];
             this.tableData[this.idx].state = this.form.stateO;
             this.tableData[this.idx].stateMsg = this.stateStrings;
@@ -358,46 +372,50 @@ export default {
                 case '未审核':
                     if (tableData.state != 0) {
                         tableData.state = 0;
-                        tableData.steps.push({
-                            stepId: tableData.steps.stepId,
-                            description: '未审核',
-                            createdTime: new Date().toLocaleString()
-                        });
                     }
 
                     break;
                 case '处理中':
                     if (tableData.state != 1) {
                         tableData.state = 1;
-                        tableData.steps.push({
-                            stepId: tableData.steps.stepId,
-                            description: '处理中',
-                            createdTime: new Date().toLocaleString()
-                        });
                     }
                     break;
                 case '已完成':
                     if (tableData.state != 2) {
                         tableData.state = 2;
-                        tableData.steps.push({
-                            stepId: tableData.steps.stepId,
-                            description: '已完成',
-                            createdTime: new Date().toLocaleString()
-                        });
                     }
                     break;
                 default:
                     break;
             }
             tableData.stateMsg = this.stateOptionInForm.value;
-
+            this.stateOptionInForm.value = '';
             this.$message.success(`修改第 ${this.idx + 1} 行成功`);
-            // this.$set(this.tableData, this.idx, this.form);
+            this.$set(this.tableData, this.idx, this.form);
+            updateRecordState(this.tableData[this.idx].recordId, this.tableData[this.idx].state).then();
         },
         // 分页导航
         handlePageChange(val) {
             this.$set(this.query, 'pageIndex', val);
             this.getData();
+        },
+        // 时间线添加弹出操作
+        handleProgressUpdate() {
+            this.inputVisible = true;
+        },
+        // 提交step desc
+        addProgress() {
+            this.inputVisible = false;
+            updateProgress(this.tableData[this.idx].recordId, this.progressDesc).then();
+            this.$message.success(`添加成功`)
+            let date = new Date()
+            this.$set(this.steps, this.steps.length, {
+                stepId: this.steps[this.idx].stepId,
+                createdTime: date.getTime(),
+                description: this.progressDesc,
+                timestamp: date.toLocaleString()
+            })
+            this.progressDesc = ''
         }
     }
 };
