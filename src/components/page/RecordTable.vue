@@ -55,14 +55,7 @@
                 <el-table-column label="描述">
                     <template slot-scope="scope">{{scope.row.description}}</template>
                 </el-table-column>
-                <el-table-column label="类型" align="center" prop="typeMsg" width="120">
-                    <!-- <template slot-scope="scope">
-                        <el-tag
-                                :type="scope.row.type===0?'success':(scope.row.type==='失败'?'danger':'')"
-                        >{{scope.row.typeMsg}}
-                        </el-tag>
-                    </template>-->
-                </el-table-column>
+                <el-table-column label="类型" align="center" prop="typeMsg" width="120"></el-table-column>
                 <el-table-column label="状态" align="center" prop="stateMsg" width="100">
                     <template slot-scope="scope">
                         <el-tag
@@ -129,11 +122,6 @@
 
         <el-dialog title="进度" :visible.sync="timelineVisible" width="30%">
             <el-timeline :reverse="true">
-                <!-- <el-timeline-item
-                    v-for="(step, index) in tableData[idx].steps"
-                    :key="index"
-                    :timestamp="step.createdTime"
-                >{{step.description}}</el-timeline-item>-->
                 <el-timeline-item
                     v-for="(step, index) in steps"
                     :key="index"
@@ -164,8 +152,8 @@ export default {
     name: 'basetable',
     data() {
         return {
-            backupData: [],
-            query: {
+            backupData: [],         //搜索时进行备份，上传时使用
+            query: {                //初始模板的变量
                 addr: null,
                 userId: null,
                 type: [],
@@ -173,11 +161,11 @@ export default {
                 pageNum: 0,
                 pageSize: 10
             },
-            addrQuery: '',
-            progressDesc: '',
-            stateMsg: [],
-            typeMsg: [],
-            tableData: [
+            addrQuery: '',         //与地址搜索栏绑定
+            progressDesc: '',      //与step输入栏绑定
+            stateMsg: [],          //用于表格上显示状态信息
+            typeMsg: [],           //用于表格上显示类型信息
+            tableData: [           //用于表格上所有的数据
                 {
                     recordId: 71,
                     userId: 11,
@@ -188,8 +176,8 @@ export default {
                     description: '测试1232',
                     address: '广东省佛山市南海区信息大道南250号靠近教学大楼',
                     state: 0,
-                    stateMsg: '',
-                    typeMsg: ''
+                    stateMsg: '',   
+                    typeMsg: ''     
                 }
             ],
             steps: [
@@ -197,40 +185,33 @@ export default {
                     stepId: 0,
                     description: '',
                     createdTime: 0,
-                    timestamp: '' //时间线的时间戳
+                    timestamp: ''           //时间线的时间戳
                 }
             ],
-            multipleSelection: [],
-            delList: [],
-            editVisible: false,
-            timelineVisible: false,
-            inputVisible: false,
-            pageTotal: 0,
-            form: {},
-            idx: 0,
-            id: 0,
-            stateOption: [
+            multipleSelection: [],          //模板数据
+            delList: [],                    //模板数据
+            editVisible: false,             //控制审核弹窗显示
+            timelineVisible: false,         //控制进度（时间线）弹窗显示
+            inputVisible: false,            //控制添加进度弹窗显示
+            pageTotal: 0,                   //模板数据，总页数
+            form: {},                       //审核弹窗内表单的数据
+            idx: 0,                         //用于选择操作时确定当前选中的某一行的索引
+            stateOption: [                  //搜索状态下拉内容
                 { key: 0, value: '未审核' },
                 { key: 1, value: '处理中' },
                 { key: 2, value: '已完成' },
                 { key: 3, value: '' }
             ],
-            typeOption: [
+            typeOption: [                   //搜索类型下拉内容
                 { key: 0, value: '路况异常' },
                 { key: 1, value: '设施故障' },
                 { key: 2, value: '设施设置不合理' },
                 { key: 3, value: '' }
             ],
-            stateOptionInForm: [
+            stateOptionInForm: [            //审核表单中修改状态的下拉菜单
                 { key: 0, value: '未审核' },
                 { key: 1, value: '处理中' },
                 { key: 2, value: '已完成' },
-                { key: 3, value: '' }
-            ],
-            typeOptionInForm: [
-                { key: 0, value: '路况异常' },
-                { key: 1, value: '设施故障' },
-                { key: 2, value: '设施设置不合理' },
                 { key: 3, value: '' }
             ]
         };
@@ -277,11 +258,7 @@ export default {
             });
             this.backupData = this.tableData;
         },
-        formatDateTime(time) {
-            let date = new Date(time);
-            return date.getFullYear() + '-' + date.getMonth() + '-' + date.getDate() + ' ' + date.getHours() + ':' + date.getMinutes();
-        },
-        // 获取 easy-mock 的模拟数据
+        // 获取服务器中records数据
         getData() {
             fetchRecordList().then(res => {
                 this.tableData = res;
@@ -327,7 +304,6 @@ export default {
                 }
                 this.searched = true;
             });
-            // this.$set(this.query, 'pageIndex', 1);
             this.tableData = queryList;
         },
         // 多选操作
@@ -342,10 +318,9 @@ export default {
             fetchRecordSteps(this.form.recordId).then(res => {
                 this.steps = res;
                 this.steps.forEach(step => {
-                    this.$set(step, 'timestamp', new Date().toLocaleString());
+                    this.$set(step, 'timestamp', new Date().toLocaleString()); //这步可能会导致卡顿
                 });
             });
-            console.log(this.form.recordId + '' + this.steps);
         },
         //进度（时间轴）弹出操作
         handleProgress(index, row) {
@@ -373,7 +348,6 @@ export default {
                     if (tableData.state != 0) {
                         tableData.state = 0;
                     }
-
                     break;
                 case '处理中':
                     if (tableData.state != 1) {
@@ -407,15 +381,15 @@ export default {
         addProgress() {
             this.inputVisible = false;
             updateProgress(this.tableData[this.idx].recordId, this.progressDesc).then();
-            this.$message.success(`添加成功`)
-            let date = new Date()
+            this.$message.success(`添加成功`);
+            let date = new Date();
             this.$set(this.steps, this.steps.length, {
                 stepId: this.steps[this.idx].stepId,
                 createdTime: date.getTime(),
                 description: this.progressDesc,
                 timestamp: date.toLocaleString()
-            })
-            this.progressDesc = ''
+            });
+            this.progressDesc = '';
         }
     }
 };
