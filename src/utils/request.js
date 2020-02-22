@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const service = axios.create({
-    // baseURL: 'http://47.98.190.231',
+    baseURL: 'http://47.98.190.231/api/',
     timeout: 5000
 });
 
