@@ -1,36 +1,36 @@
 import request from '../utils/request';
 import qs from 'qs';
-export const fetchTypeStatistics = () => {
+export const fetchIndex = () => {
     return request({
-        url: './records/type-statistics',
+        url: './index',
         method: 'get'
     });
 };
 export const postNews = (data) => {
     return request({
-        url: './news',
+        url:'./news',
         method: 'post',
-        data: data,
+        data:data,
     });
 };
-export const fetchNewsList = (params) => {
+export const fetchNewsList=(params)=>{
     return request({
-        url: './news',
-        method: 'get',
-        params: params
+        url:'./news',
+        method:'get',
+        params:params
     });
 };
-export const fetchNews = (newsId) => {
+export const fetchNews=(newsId)=>{
     return request({
-        url: `./news/${newsId}`,
-        method: 'get'
+        url:`./news/${newsId}`,
+        method:'get'
     })
 }
-export const updateNews = (id, data) => {
+export const updateNews=(id,data)=>{
     return request({
-        url: `./news/${id}`,
-        method: 'put',
-        data: data
+        url:`./news/${id}`,
+        method:'put',
+        data:data
     })
 }
 export const fetchRecordList = () => {
