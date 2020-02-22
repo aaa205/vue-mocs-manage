@@ -65,83 +65,19 @@
                         title: '系统首页'
                     },
                     {
-                        icon: 'el-icon-lx-cascades',
-                        title: '表格',
-                        subs: [
-                            {
-                                index: 'records',
-                                title: '用户意见'
-                            },
-                            {
-                                index: 'news',
-                                title: '新闻'
-                            }
-                        ]
+                        icon:'el-icon-lx-cascades',
+                        index:'records',
+                        title:'用户意见'
+                    },
+                    {
+                        icon:'el-icon-lx-cascades',
+                        index: 'news',
+                        title: '新闻'
                     },
                     {
                         icon:'el-icon-lx-news',
                         index: 'editor',
                         title: '新闻编辑'
-                    },
-                    {
-                        icon: 'el-icon-lx-copy',
-                        index: 'tabs',
-                        title: 'tab选项卡'
-                    },
-                    {
-                        icon: 'el-icon-lx-calendar',
-                        index: '3',
-                        title: '表单相关',
-                        subs: [
-                            {
-                                index: 'form',
-                                title: '基本表单',
-                            },
-                            {
-                                index: 'upload',
-                                title: '文件上传'
-                            }
-                        ]
-                    },
-                    {
-                        icon: 'el-icon-lx-emoji',
-                        index: 'icon',
-                        title: '自定义图标'
-                    },
-                    {
-                        icon: 'el-icon-pie-chart',
-                        index: 'charts',
-                        title: 'schart图表'
-                    },
-                    {
-                        icon: 'el-icon-rank',
-                        index: '6',
-                        title: '拖拽组件',
-                        subs: [
-                            {
-                                index: 'drag',
-                                title: '拖拽列表'
-                            },
-                            {
-                                index: 'dialog',
-                                title: '拖拽弹框'
-                            }
-                        ]
-                    },
-                    {
-                        icon: 'el-icon-lx-warn',
-                        index: '7',
-                        title: '错误处理',
-                        subs: [
-                            {
-                                index: 'permission',
-                                title: '权限测试'
-                            },
-                            {
-                                index: '404',
-                                title: '404页面'
-                            }
-                        ]
                     }
                 ]
             };
