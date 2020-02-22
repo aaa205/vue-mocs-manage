@@ -106,12 +106,19 @@
                 <el-form-item label="状态">
                     <el-select v-model="stateOptionInForm.value" class="handle-select mr10">
                         <el-option
-                            v-for="option in stateOptionInForm"
+                            v-for="option in stateOptionInForm.slice(0,3)"
                             :key="option.key"
                             :value="option.value"
                             :label="option.value"
                         ></el-option>
                     </el-select>
+                </el-form-item>
+                <el-form-item label="图片">
+                    <el-image style="width: 100px;height: 100px ;margin-right: 15px" v-for="url in form.images"
+                              :src="url"
+                              fit="cover"
+                              :preview-src-list="form.images">
+                    </el-image>
                 </el-form-item>
             </el-form>
             <span slot="footer" class="dialog-footer">
@@ -125,6 +132,7 @@
                 <el-timeline-item
                     v-for="(step, index) in steps"
                     :key="index"
+                    type="primary"
                     :timestamp="step.timestamp"
                 >{{step.description}}</el-timeline-item>
             </el-timeline>
@@ -176,8 +184,9 @@ export default {
                     description: '测试1232',
                     address: '广东省佛山市南海区信息大道南250号靠近教学大楼',
                     state: 0,
-                    stateMsg: '',   
-                    typeMsg: ''     
+                    stateMsg: '',
+                    typeMsg: '',
+                    image:[]
                 }
             ],
             steps: [
