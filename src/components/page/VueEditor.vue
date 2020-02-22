@@ -14,11 +14,14 @@
                             class="upload-block"
                             accept=".jpg,.jpeg,.png"
                             action="#"
+                            name="smfile"
+                            :headers="headers"
                             :auto-upload="false"
                             :limit='1'
+                            :on-success="(resp)=>{window.console.log(resp)}"
+                            :on-change="handleChange"
                             :file-list="fileList"
                             :show-file-list="false"
-                            :on-change="handleChange"
                             list-type="picture">
                         <el-button size="small" type="primary">点击上传封面</el-button>
                         <div slot="tip" class="el-upload__tip">只能上传jpg/png文件</div>
@@ -37,7 +40,7 @@
     import 'quill/dist/quill.snow.css';
     import 'quill/dist/quill.bubble.css';
     import { quillEditor } from 'vue-quill-editor';
-    import { fetchNews, postNews, updateNews } from '../../api';
+    import { fetchNews, postNews, updateNews, uploadImg } from '../../api';
 
     export default {
         name: 'editor',
@@ -47,6 +50,9 @@
                     title: '',
                     content: '',
                     cover: ''
+                },
+                headers:{
+                  Authorization: 'DiQMO10k4SkZk5caKQ4FmPnwRLLea1j1'
                 },
                 id: -1,
                 loading: false,
@@ -81,6 +87,8 @@
                     this.news.cover = base64;
                 };
                 reader.readAsDataURL(file.raw);
+                window.console.log(file)
+                // uploadImg(file).then(resp=>{window.console.log(resp)}) 图床用不了，算了
             },
             submit() {
                 this.loading = true;

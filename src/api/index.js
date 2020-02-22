@@ -33,3 +33,15 @@ export const updateNews=(id,data)=>{
         data:data
     })
 }
+export const uploadImg=(file)=>{
+    let form=new FormData();
+    form.append('smfile',file)
+    return request({
+        url:'./upload',
+        method:'post',
+        headers:{
+            'Authorization':'DiQMO10k4SkZk5caKQ4FmPnwRLLea1j1'
+        },
+        data:form
+    })
+}
